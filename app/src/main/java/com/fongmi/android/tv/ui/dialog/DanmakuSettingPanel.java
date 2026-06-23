@@ -1,6 +1,8 @@
 package com.fongmi.android.tv.ui.dialog;
 
+import android.content.res.ColorStateList;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.CompoundButton;
 import android.widget.TextView;
 
@@ -10,8 +12,8 @@ import com.fongmi.android.tv.R;
 import com.fongmi.android.tv.databinding.DialogDanmakuSettingBinding;
 import com.fongmi.android.tv.player.PlayerManager;
 import com.fongmi.android.tv.setting.DanmakuSetting;
+import com.fongmi.android.tv.utils.ResUtil;
 import com.google.android.material.button.MaterialButton;
-import com.google.android.material.chip.ChipGroup;
 import com.google.android.material.slider.Slider;
 
 import java.util.Locale;
@@ -39,10 +41,10 @@ final class DanmakuSettingPanel {
         bindDensity();
         bindDisplay();
         bindTabs();
+        applySheetColors();
         showTab(0);
         binding.tabAppearance.requestFocus();
         binding.reset.setOnClickListener(this::onReset);
-        binding.tabGroup.check(binding.tabAppearance.getId());
     }
 
     private void bindAppearance() {
@@ -55,8 +57,8 @@ final class DanmakuSettingPanel {
         setupFloat(appearance.projectionOffsetXSlider, appearance.projectionOffsetXValue, DanmakuSetting.getProjectionOffsetX(), "%.2f", DanmakuSetting::putProjectionOffsetX);
         setupFloat(appearance.projectionOffsetYSlider, appearance.projectionOffsetYValue, DanmakuSetting.getProjectionOffsetY(), "%.2f", DanmakuSetting::putProjectionOffsetY);
         setupFloat(appearance.projectionAlphaSlider, appearance.projectionAlphaValue, DanmakuSetting.getProjectionTransparency(), "%.2f", DanmakuSetting::putProjectionTransparency);
-        setupChip(appearance.styleChipGroup, DanmakuSetting.getStyleMode(), this::styleChipForMode, this::styleModeForChip, this::onStyleModeChanged);
-        setupChip(appearance.colorChipGroup, DanmakuSetting.getColorMode(), this::colorChipForMode, this::colorModeForChip, this::onColorModeChanged);
+        setupChoice(DanmakuSetting.getStyleMode(), this::styleChipForMode, this::styleModeForChip, this::onStyleModeChanged, appearance.styleNone, appearance.styleShadow, appearance.styleStroke, appearance.styleProjection);
+        setupChoice(DanmakuSetting.getColorMode(), this::colorChipForMode, this::colorModeForChip, this::onColorModeChanged, appearance.colorDefault, appearance.colorColorful, appearance.colorGradient);
         updateStyleSubSettings(DanmakuSetting.getStyleMode());
         updateColorOverrideHint(DanmakuSetting.getColorMode());
     }
@@ -92,17 +94,62 @@ final class DanmakuSettingPanel {
     }
 
     private void bindTabs() {
-        MaterialButton[] tabs = {binding.tabAppearance, binding.tabTiming, binding.tabDensity, binding.tabDisplay};
-        for (MaterialButton tab : tabs) checkOnFocus(tab);
-        binding.tabGroup.addOnButtonCheckedListener((group, checkedId, isChecked) -> {
-            if (!isChecked) return;
-            for (int i = 0; i < tabs.length; i++) if (checkedId == tabs[i].getId()) showTab(i);
-        });
+        TextView[] tabs = {binding.tabAppearance, binding.tabTiming, binding.tabDensity, binding.tabDisplay};
+        for (TextView tab : tabs) {
+            checkOnFocus(tab);
+        }
+        for (int i = 0; i < tabs.length; i++) {
+            int index = i;
+            tabs[i].setOnClickListener(view -> showTab(index));
+        }
     }
 
-    private void checkOnFocus(MaterialButton button) {
+    private void applySheetColors() {
+        tintText(binding.getRoot());
+        tintSlider(binding.appearance.textSizeSlider);
+        tintSlider(binding.appearance.alphaSlider);
+        tintSlider(binding.appearance.shadowAlphaSlider);
+        tintSlider(binding.appearance.strokeWidthSlider);
+        tintSlider(binding.appearance.projectionOffsetXSlider);
+        tintSlider(binding.appearance.projectionOffsetYSlider);
+        tintSlider(binding.appearance.projectionAlphaSlider);
+        tintSlider(binding.timing.timeOffsetSlider);
+        tintSlider(binding.timing.durationSlider);
+        tintSlider(binding.timing.fixedDurationSlider);
+        tintSlider(binding.density.maxOnScreenSlider);
+        tintSlider(binding.density.scrollAreaSlider);
+        tintSlider(binding.density.scrollGapSlider);
+        tintSlider(binding.density.lineSpacingSlider);
+        tintSlider(binding.density.maxScrollLinesSlider);
+        tintSlider(binding.density.maxTopLinesSlider);
+        tintSlider(binding.density.maxBottomLinesSlider);
+    }
+
+    private void tintText(View view) {
+        if (view == binding.reset || view == binding.tabAppearance || view == binding.tabTiming || view == binding.tabDensity || view == binding.tabDisplay) return;
+        if (view instanceof MaterialButton) return;
+        if (view instanceof TextView) ((TextView) view).setTextColor(ResUtil.getColor(R.color.white_90));
+        if (view instanceof ViewGroup) {
+            ViewGroup group = (ViewGroup) view;
+            for (int i = 0; i < group.getChildCount(); i++) tintText(group.getChildAt(i));
+        }
+    }
+
+    private void tintSlider(Slider slider) {
+        ColorStateList active = ColorStateList.valueOf(0xCC6F86E8);
+        slider.setTrackActiveTintList(active);
+        slider.setTrackInactiveTintList(ColorStateList.valueOf(0x24FFFFFF));
+        slider.setThumbTintList(active);
+        slider.setHaloTintList(ColorStateList.valueOf(0x226F86E8));
+    }
+
+    private void checkOnFocus(TextView button) {
         button.setOnFocusChangeListener((v, focused) -> {
-            if (focused) binding.tabGroup.check(button.getId());
+            if (!focused) return;
+            if (button == binding.tabAppearance) showTab(0);
+            else if (button == binding.tabTiming) showTab(1);
+            else if (button == binding.tabDensity) showTab(2);
+            else if (button == binding.tabDisplay) showTab(3);
         });
     }
 
@@ -134,8 +181,9 @@ final class DanmakuSettingPanel {
 
     private void showTab(int index) {
         View[] roots = {binding.appearance.getRoot(), binding.timing.getRoot(), binding.density.getRoot(), binding.display.getRoot()};
-        MaterialButton[] tabs = {binding.tabAppearance, binding.tabTiming, binding.tabDensity, binding.tabDisplay};
+        TextView[] tabs = {binding.tabAppearance, binding.tabTiming, binding.tabDensity, binding.tabDisplay};
         for (int i = 0; i < roots.length; i++) roots[i].setVisibility(visibleIf(index == i));
+        for (int i = 0; i < tabs.length; i++) tabs[i].setSelected(index == i);
         binding.reset.setNextFocusDownId(tabs[currentTab = index].getId());
     }
 
@@ -251,14 +299,16 @@ final class DanmakuSettingPanel {
         setupSwitch(button, value, setter, null);
     }
 
-    private void setupChip(ChipGroup group, int initialMode, IntUnaryOperator chipForMode, IntUnaryOperator modeForChip, IntConsumer onChange) {
-        group.setOnCheckedStateChangeListener(null);
-        group.check(chipForMode.applyAsInt(initialMode));
-        group.setOnCheckedStateChangeListener((source, checkedIds) -> {
-            if (checkedIds.isEmpty()) return;
-            onChange.accept(modeForChip.applyAsInt(checkedIds.get(0)));
-            applyConfig();
-        });
+    private void setupChoice(int initialMode, IntUnaryOperator viewForMode, IntUnaryOperator modeForView, IntConsumer onChange, TextView... choices) {
+        int selectedId = viewForMode.applyAsInt(initialMode);
+        for (TextView choice : choices) {
+            choice.setSelected(choice.getId() == selectedId);
+            choice.setOnClickListener(view -> {
+                for (TextView item : choices) item.setSelected(item == view);
+                onChange.accept(modeForView.applyAsInt(view.getId()));
+                applyConfig();
+            });
+        }
     }
 
     private String linesText(int value) {

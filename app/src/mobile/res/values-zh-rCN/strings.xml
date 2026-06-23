@@ -36,6 +36,26 @@
     <string name="control_scale">缩放</string>
     <string name="control_track">轨道</string>
     <string name="control_other">其它</string>
+    <string name="live_control_play">直播</string>
+    <string name="live_control_source">直播源</string>
+    <string name="live_control_epg">EPG源</string>
+    <string name="live_control_pip">悬窗</string>
+    <string name="live_control_preference">偏好</string>
+    <string name="live_control_player">播放</string>
+    <string name="live_source_select">选择直播源</string>
+    <string name="live_epg_select">选择EPG源</string>
+    <string name="live_epg_default">随直播源</string>
+    <string name="live_epg_follow">随源</string>
+    <string name="live_epg_apply">使用</string>
+    <string name="live_epg_save">保存</string>
+    <string name="live_epg_edit">编辑</string>
+    <string name="live_epg_delete">删除</string>
+    <string name="live_epg_hint">输入 XML/GZ 或 {name}/{date} 模板地址</string>
+    <string name="live_epg_empty">请输入EPG地址，或直接选择下方来源</string>
+    <string name="live_program_title">节目预告</string>
+    <string name="live_program_empty">暂无节目预告</string>
+    <string name="live_program_current">直播中</string>
+    <string name="dialog_clear">清空</string>
 
     <!-- Dialog -->
     <string name="dialog_delete_record">删除全部纪录？</string>
