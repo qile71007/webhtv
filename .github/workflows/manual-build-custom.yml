@@ -1,0 +1,41 @@
+name: Manual Build with Custom Package Name
+
+on:
+  workflow_dispatch:  # 手动触发
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+          cache: gradle
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Modify applicationId for all flavors
+        run: |
+          # 将 mobile 和 leanback 的 applicationId 统一改为自定义包名
+          sed -i 's/applicationId "com\.qile71007\..*"/applicationId "com.fongmi.android.qilew"/g' app/build.gradle
+          # 如果原包名不是 com.qile71007，请根据实际修改上面的正则
+          # 或者直接按行替换（更稳妥）
+          sed -i '/applicationId/c\        applicationId "com.fongmi.android.qilew"' app/build.gradle
+
+      - name: Build APKs
+        run: |
+          chmod +x gradlew
+          ./gradlew :app:assembleMobileArm64_v8aRelease
+          ./gradlew :app:assembleLeanbackArmeabi_v7aRelease
+          ./gradlew :app:assembleLeanbackArm64_v8aRelease
+
+      - name: Upload APKs
+        uses: actions/upload-artifact@v4
+        with:
+          name: apks-custom-package
+          path: app/build/outputs/apk/**/release/*.apk
