@@ -140,7 +140,14 @@ public abstract class PlaybackActivity extends BaseActivity implements MediaCont
     protected void onTitlesChanged() {
     }
 
+    protected void onPlayerRebuilt() {
+    }
+
     protected void onError(String msg) {
+    }
+
+    protected void onReload(String msg) {
+        onError(msg);
     }
 
     protected void onPlayingChanged(boolean isPlaying) {
@@ -380,8 +387,16 @@ public abstract class PlaybackActivity extends BaseActivity implements MediaCont
         }
 
         @Override
+        public void onReload(String msg) {
+            if (isOwner()) PlaybackActivity.this.onReload(msg);
+        }
+
+        @Override
         public void onPlayerRebuild(Player player) {
-            if (isOwner()) setRender();
+            if (isOwner()) {
+                setRender();
+                PlaybackActivity.this.onPlayerRebuilt();
+            }
         }
     };
 

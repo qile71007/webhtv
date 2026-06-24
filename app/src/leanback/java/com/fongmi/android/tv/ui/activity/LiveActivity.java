@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
+import android.text.TextUtils;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.ViewGroup;
@@ -56,6 +57,7 @@ import com.fongmi.android.tv.ui.adapter.GroupAdapter;
 import com.fongmi.android.tv.ui.custom.CustomKeyDownLive;
 import com.fongmi.android.tv.ui.custom.CustomLiveListView;
 import com.fongmi.android.tv.ui.custom.CustomSeekView;
+import com.fongmi.android.tv.ui.custom.PlayerOsdController;
 import com.fongmi.android.tv.ui.dialog.HistoryDialog;
 import com.fongmi.android.tv.ui.dialog.LiveDialog;
 import com.fongmi.android.tv.ui.dialog.PassDialog;
@@ -84,8 +86,11 @@ public class LiveActivity extends PlaybackActivity implements GroupAdapter.OnCli
     private CustomKeyDownLive mKeyDown;
     private Observer<Epg> mObserveEpg;
     private LiveViewModel mViewModel;
+    private PlayerOsdController mOsd;
     private List<Group> mHides;
     private String mPlaybackKey;
+    private String mPendingReloadUrl;
+    private String mPendingReloadMsg;
     private Channel mChannel;
     private View mOldView;
     private Group mGroup;
@@ -167,6 +172,17 @@ public class LiveActivity extends PlaybackActivity implements GroupAdapter.OnCli
         mR3 = this::hideInfo;
         mR4 = this::hideUI;
         setRecyclerView();
+        mOsd = new PlayerOsdController(mBinding.osd.getRoot(), mBinding.osd.osdTopLeft, mBinding.osd.osdTopRight, mBinding.osd.osdBottomLeft, mBinding.osd.osdBottomRight, mBinding.osd.osdMiniProgress, new PlayerOsdController.Source() {
+            @Override
+            public PlayerManager getPlayer() {
+                return service() == null ? null : player();
+            }
+
+            @Override
+            public String getTitle() {
+                return mChannel == null ? "" : mChannel.getName();
+            }
+        }, 14f);
         setVideoView();
         setViewModel();
     }
@@ -505,6 +521,20 @@ public class LiveActivity extends PlaybackActivity implements GroupAdapter.OnCli
     }
 
     @Override
+    protected void onReload(String msg) {
+        if (mChannel == null) {
+            onError(msg);
+            return;
+        }
+        mPendingReloadUrl = mPlaybackKey != null ? mPlaybackKey : player().getUrl();
+        mPendingReloadMsg = msg;
+        player().resetTrack();
+        player().reset();
+        player().stop();
+        fetch();
+    }
+
+    @Override
     protected void onReclaim() {
         Result result = mViewModel.url().getValue();
         if (result != null) start(result);
@@ -591,6 +621,7 @@ public class LiveActivity extends PlaybackActivity implements GroupAdapter.OnCli
     private void showControl(View view) {
         mBinding.control.getRoot().setVisibility(View.VISIBLE);
         mBinding.widget.top.setVisibility(View.VISIBLE);
+        if (mOsd != null) mOsd.setControlsVisible(true);
         App.post(view::requestFocus, 25);
         setR1Callback();
         hideInfo();
@@ -599,6 +630,7 @@ public class LiveActivity extends PlaybackActivity implements GroupAdapter.OnCli
     private void hideControl() {
         mBinding.control.getRoot().setVisibility(View.GONE);
         mBinding.widget.top.setVisibility(View.GONE);
+        if (mOsd != null) mOsd.setControlsVisible(false);
         App.removeCallbacks(mR1);
     }
 
@@ -770,9 +802,34 @@ public class LiveActivity extends PlaybackActivity implements GroupAdapter.OnCli
     }
 
     private void start(Result result) {
-        mPlaybackKey = result.getRealUrl();
+        String realUrl = result.getRealUrl();
+        if (isSameReloadUrl(realUrl)) {
+            String msg = mPendingReloadMsg;
+            clearPendingReload();
+            handleSameReloadUrl(msg);
+            return;
+        }
+        clearPendingReload();
+        mPlaybackKey = realUrl;
         startPlayer(mPlaybackKey, result, false, getHome().getTimeout(), buildMetadata());
         mBinding.control.action.speed.setText(player().setSpeed(PlayerSetting.getDefaultSpeed()));
+    }
+
+    private boolean isSameReloadUrl(String realUrl) {
+        return !TextUtils.isEmpty(mPendingReloadUrl) && TextUtils.equals(mPendingReloadUrl, realUrl);
+    }
+
+    private void clearPendingReload() {
+        mPendingReloadUrl = null;
+        mPendingReloadMsg = null;
+    }
+
+    private void handleSameReloadUrl(String msg) {
+        if (mChannel != null && !mChannel.isOnly()) {
+            nextLine(true);
+        } else {
+            onError(msg);
+        }
     }
 
     private void resetAdapter() {
@@ -1065,11 +1122,13 @@ public class LiveActivity extends PlaybackActivity implements GroupAdapter.OnCli
     protected void onStart() {
         super.onStart();
         mClock.stop().start();
+        if (mOsd != null) mOsd.start();
     }
 
     @Override
     protected void onStop() {
         super.onStop();
+        if (mOsd != null) mOsd.stop();
         if (PlayerSetting.isBackgroundOff()) mClock.stop();
     }
 
@@ -1092,6 +1151,7 @@ public class LiveActivity extends PlaybackActivity implements GroupAdapter.OnCli
         mClock.release();
         Source.get().exit();
         App.removeCallbacks(mR0, mR1, mR2, mR3, mR4);
+        if (mOsd != null) mOsd.release();
         mViewModel.url().removeObserver(mObserveUrl);
         mViewModel.epg().removeObserver(mObserveEpg);
         super.onDestroy();

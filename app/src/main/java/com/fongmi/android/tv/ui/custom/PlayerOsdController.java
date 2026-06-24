@@ -124,6 +124,10 @@ public class PlayerOsdController {
         }
         long position = Math.max(0, player.getPosition());
         long duration = Math.max(0, player.getDuration());
+        if (duration <= 0) {
+            bottomLeft.setVisibility(View.GONE);
+            return;
+        }
         bottomLeft.setText(Util.timeMs(position) + " / " + Util.timeMs(duration));
         bottomLeft.setVisibility(View.VISIBLE);
     }

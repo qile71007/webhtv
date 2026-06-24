@@ -24,6 +24,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
+import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentActivity;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
@@ -131,6 +132,7 @@ public class VideoActivity extends PlaybackActivity implements Clock.Callback, C
     private Observer<Result> mObserveSearch;
     private EpisodeAdapter mEpisodeAdapter;
     private EpisodeGroupAdapter mEpisodeGroupAdapter;
+    private SpaceItemDecoration mEpisodeDecoration;
     private QualityAdapter mQualityAdapter;
     private QuickAdapter mQuickAdapter;
     private QuickSearchDialog mQuickSearchDialog;
@@ -149,6 +151,9 @@ public class VideoActivity extends PlaybackActivity implements Clock.Callback, C
     private boolean rotate;
     private boolean detailHealthRecorded;
     private boolean playHealthRecorded;
+    private int mEpisodeSpanCount;
+    private int mEpisodeBottomInset;
+    private int mEpisodeMaxHeight;
     private Runnable mR1;
     private Runnable mR2;
     private Runnable mR3;
@@ -353,6 +358,20 @@ public class VideoActivity extends PlaybackActivity implements Clock.Callback, C
     }
 
     @Override
+    protected void onPlayerRebuilt() {
+        setPlayerKernel();
+        setDecode();
+        setLut();
+        refreshControlDialog();
+    }
+
+    private void refreshControlDialog() {
+        for (Fragment fragment : getSupportFragmentManager().getFragments()) {
+            if (fragment instanceof ControlDialog dialog) dialog.setPlayer();
+        }
+    }
+
+    @Override
     protected void onNewIntent(Intent intent) {
         String oldId = getId();
         super.onNewIntent(intent);
@@ -469,9 +488,26 @@ public class VideoActivity extends PlaybackActivity implements Clock.Callback, C
     }
 
     private void setEpisodeBottomInset(int bottom) {
+        mEpisodeBottomInset = bottom;
         int padding = bottom + ResUtil.dp2px(12);
         padding = Math.max(padding, ResUtil.dp2px(28));
         mBinding.episode.setPaddingRelative(mBinding.episode.getPaddingStart(), mBinding.episode.getPaddingTop(), mBinding.episode.getPaddingEnd(), padding);
+        mBinding.episode.post(this::updateEpisodeViewportHeight);
+    }
+
+    private void updateEpisodeViewportHeight() {
+        if (mBinding.episode.getVisibility() != View.VISIBLE || mBinding.getRoot().getHeight() <= 0) return;
+        int[] root = new int[2];
+        int[] episode = new int[2];
+        mBinding.getRoot().getLocationOnScreen(root);
+        mBinding.episode.getLocationOnScreen(episode);
+        int available = root[1] + mBinding.getRoot().getHeight() - mEpisodeBottomInset - ResUtil.dp2px(8) - episode[1];
+        int limit = ResUtil.isPad() || ResUtil.isLand(this) ? ResUtil.dp2px(328) : ResUtil.dp2px(280);
+        int height = Math.min(limit, available);
+        if (height <= 0 || height == mEpisodeMaxHeight) return;
+        mEpisodeMaxHeight = height;
+        mBinding.episode.setMaxHeight(height);
+        mBinding.episode.requestLayout();
     }
 
     private void setRecyclerView() {
@@ -483,12 +519,12 @@ public class VideoActivity extends PlaybackActivity implements Clock.Callback, C
         mBinding.episodeGroup.setHasFixedSize(true);
         mBinding.episodeGroup.setItemAnimator(null);
         mBinding.episodeGroup.setAdapter(mEpisodeGroupAdapter = new EpisodeGroupAdapter(this));
-        int episodeSpanCount = getEpisodeSpanCount();
+        mEpisodeSpanCount = getEpisodeSpanCount();
         mBinding.episode.setNestedScrollingEnabled(false);
         mBinding.episode.setHasFixedSize(false);
         mBinding.episode.setItemAnimator(null);
-        mBinding.episode.setLayoutManager(new GridLayoutManager(this, episodeSpanCount));
-        mBinding.episode.addItemDecoration(new SpaceItemDecoration(episodeSpanCount, 8));
+        mBinding.episode.setLayoutManager(new GridLayoutManager(this, mEpisodeSpanCount));
+        mBinding.episode.addItemDecoration(mEpisodeDecoration = new SpaceItemDecoration(mEpisodeSpanCount, 8));
         mBinding.episode.setAdapter(mEpisodeAdapter = new EpisodeAdapter(this, ViewType.GRID));
         mBinding.quality.setHasFixedSize(true);
         mBinding.quality.setItemAnimator(null);
@@ -717,6 +753,7 @@ public class VideoActivity extends PlaybackActivity implements Clock.Callback, C
         mFlagAdapter.setSelected(item);
         scrollToPosition(mBinding.flag, mFlagAdapter.getPosition());
         setEpisodeAdapter(item.getEpisodes());
+        scrollToPosition(mBinding.episode, mEpisodeAdapter.getPosition());
         setQualityVisible(false);
         seamless(item);
     }
@@ -726,7 +763,6 @@ public class VideoActivity extends PlaybackActivity implements Clock.Callback, C
         if (shouldEnterFullscreen(item)) return;
         mFlagAdapter.toggle(item);
         setEpisodeAdapter(getFlag().getEpisodes());
-        scrollToPosition(mBinding.episode, mEpisodeAdapter.getPosition());
         if (isFullscreen()) Notify.show(getString(R.string.play_ready, item.getName()));
         onRefresh();
     }
@@ -776,21 +812,50 @@ public class VideoActivity extends PlaybackActivity implements Clock.Callback, C
         mEpisodeGroupAdapter.addAll(groups);
         mBinding.episodeGroup.setVisibility(groups.size() > 1 ? View.VISIBLE : View.GONE);
         setVisibleEpisodeAdapter(items, mEpisodeGroupAdapter.isEmpty() ? null : mEpisodeGroupAdapter.getItems().get(mEpisodeGroupAdapter.getPosition()));
+        mBinding.episode.post(this::updateEpisodeViewportHeight);
     }
 
     private void setVisibleEpisodeAdapter(List<Episode> items, EpisodeGroupAdapter.Group group) {
         if (group == null) {
+            updateEpisodeSpan(items);
             mEpisodeAdapter.addAll(items);
             return;
         }
         int start = Math.max(0, Math.min(group.start, items.size()));
         int end = Math.max(start, Math.min(group.end, items.size()));
-        mEpisodeAdapter.addAll(new ArrayList<>(items.subList(start, end)));
+        ArrayList<Episode> visible = new ArrayList<>(items.subList(start, end));
+        updateEpisodeSpan(visible);
+        mEpisodeAdapter.addAll(visible);
+    }
+
+    private void updateEpisodeSpan(List<Episode> items) {
+        int span = getEpisodeSpan(items);
+        if (span == mEpisodeSpanCount) return;
+        mEpisodeSpanCount = span;
+        mBinding.episode.setLayoutManager(new GridLayoutManager(this, mEpisodeSpanCount));
+        if (mEpisodeDecoration != null) mBinding.episode.removeItemDecoration(mEpisodeDecoration);
+        mBinding.episode.addItemDecoration(mEpisodeDecoration = new SpaceItemDecoration(mEpisodeSpanCount, 8));
+    }
+
+    private int getEpisodeSpan(List<Episode> items) {
+        int maxLen = 0;
+        for (Episode item : items) maxLen = Math.max(maxLen, item.getDesc().concat(item.getName()).length());
+        if (maxLen >= 12) return PlayerSetting.getEpisodeColumn();
+        int ideal = maxLen >= 10 ? 130 : maxLen >= 7 ? 104 : 80;
+        int width = mBinding.episode.getWidth() > 0 ? mBinding.episode.getWidth() : ResUtil.getScreenWidth(this) - ResUtil.dp2px(32);
+        int span = width / ResUtil.dp2px(ideal);
+        return Math.max(2, Math.min(getEpisodeSpanCount(), span));
     }
 
     private int getSelectedEpisodePosition(List<Episode> items) {
         for (int i = 0; i < items.size(); i++) if (items.get(i).isSelected()) return i;
         return 0;
+    }
+
+    private void syncSelectedEpisode(Flag flag) {
+        if (flag == null || mHistory == null) return;
+        Episode episode = flag.find(mHistory.getVodRemarks(), false);
+        if (episode != null) flag.toggle(true, episode);
     }
 
     private int getEpisodeCount() {
@@ -828,6 +893,7 @@ public class VideoActivity extends PlaybackActivity implements Clock.Callback, C
     }
 
     private void onMore() {
+        syncSelectedEpisode(getFlag());
         EpisodeGridDialog.create().reverse(mHistory.isRevSort()).episodes(getFlag().getEpisodes()).show(this);
     }
 
@@ -1124,6 +1190,7 @@ public class VideoActivity extends PlaybackActivity implements Clock.Callback, C
     }
 
     private void onEpisodes() {
+        syncSelectedEpisode(getFlag());
         EpisodeListDialog.create().flags(mFlagAdapter.getItems()).reverse(mHistory.isRevSort()).show(this);
     }
 
@@ -1950,6 +2017,21 @@ public class VideoActivity extends PlaybackActivity implements Clock.Callback, C
     public void onScale(int tag) {
         mKeyDown.resetScale();
         setScale(tag);
+    }
+
+    @Override
+    public void onEpisodeColumn(int column) {
+        PlayerSetting.putEpisodeColumn(column);
+        if (mEpisodeAdapter == null) return;
+        if (mFlagAdapter == null || mFlagAdapter.isEmpty()) {
+            updateEpisodeSpan(mEpisodeAdapter.getItems());
+            mEpisodeAdapter.notifyItemRangeChanged(0, mEpisodeAdapter.getItemCount());
+        } else {
+            EpisodeGroupAdapter.Group group = mEpisodeGroupAdapter.isEmpty() ? null : mEpisodeGroupAdapter.getItems().get(mEpisodeGroupAdapter.getPosition());
+            setVisibleEpisodeAdapter(getFlag().getEpisodes(), group);
+        }
+        scrollToPosition(mBinding.episode, mEpisodeAdapter.getPosition());
+        mBinding.episode.post(this::updateEpisodeViewportHeight);
     }
 
     @Override

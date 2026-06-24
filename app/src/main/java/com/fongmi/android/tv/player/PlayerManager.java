@@ -70,6 +70,7 @@ public class PlayerManager implements ParseCallback {
     private ParseJob parseJob;
     private PlaySpec spec;
     private Player player;
+    private String currentDanmakuUrl;
 
     private boolean initTrack;
     private boolean exoFallbackTried;
@@ -88,7 +89,7 @@ public class PlayerManager implements ParseCallback {
     private int lutApplySeq;
 
     public PlayerManager(Callback callback) {
-        this.runnable = () -> callback.onError(ResUtil.getString(R.string.error_play_timeout));
+        this.runnable = this::onPlaybackTimeout;
         this.dynamicLutEffect = new DynamicLutEffect();
         this.playerType = PlayerSetting.getPlayer();
         this.engine = buildEngine(playerType, PlayerEngine.HARD);
@@ -105,6 +106,33 @@ public class PlayerManager implements ParseCallback {
         engine.release();
         engine = null;
         player = null;
+        videoEffectsActive = false;
+        videoEffectsDirty = false;
+        lutAppliedForItem = false;
+        lutApplyInProgress = false;
+        lutPipelineReadyForItem = false;
+        lutPipelinePrepareInProgress = false;
+        pendingLutPreview = false;
+        waitingLutBeforePlay = false;
+        currentDanmakuUrl = null;
+    }
+
+    private void onPlaybackTimeout() {
+        if (retryExoFallback("timeout")) return;
+        callback.onError(ResUtil.getString(R.string.error_play_timeout));
+    }
+
+    private void resetLutRuntimeState(String reason, boolean clearEngineEffects) {
+        lutApplySeq++;
+        if (clearEngineEffects && engine != null && videoEffectsActive) {
+            try {
+                engine.setVideoEffects(Collections.emptyList());
+                if (SpiderDebug.isEnabled()) SpiderDebug.log("lut", "clear effects before reset reason=%s", reason);
+            } catch (Throwable e) {
+                if (SpiderDebug.isEnabled()) SpiderDebug.log("lut", "clear effects before reset failed reason=%s error=%s", reason, causeChain(e));
+            }
+        }
+        dynamicLutEffect.clear();
         videoEffectsActive = false;
         videoEffectsDirty = false;
         lutAppliedForItem = false;
@@ -236,7 +264,6 @@ public class PlayerManager implements ParseCallback {
     }
 
     public String getLutText() {
-        if (!TextUtils.isEmpty(getLutUnavailableReason())) return ResUtil.getString(R.string.play_lut);
         return LutSetting.getButtonText();
     }
 
@@ -394,6 +421,7 @@ public class PlayerManager implements ParseCallback {
         prepareSeq++;
         lutApplySeq++;
         spec = null;
+        currentDanmakuUrl = null;
         lutAppliedForItem = false;
         lutApplyInProgress = false;
         lutPipelineReadyForItem = false;
@@ -428,15 +456,9 @@ public class PlayerManager implements ParseCallback {
         float speed = getSpeed();
         boolean repeat = isRepeatOne();
         int decode = engine.getDecode();
+        prepareSeq++;
+        resetLutRuntimeState("switch_player", true);
         engine.release();
-        videoEffectsActive = false;
-        videoEffectsDirty = false;
-        lutAppliedForItem = false;
-        lutApplyInProgress = false;
-        lutPipelineReadyForItem = false;
-        lutPipelinePrepareInProgress = false;
-        pendingLutPreview = false;
-        waitingLutBeforePlay = false;
         playerType = type;
         if (persist) {
             exoFallbackTried = false;
@@ -482,6 +504,7 @@ public class PlayerManager implements ParseCallback {
         retry = 0;
         exoFallbackTried = false;
         localProxyRetry = 0;
+        currentDanmakuUrl = null;
         setMediaItem(timeout);
     }
 
@@ -491,6 +514,7 @@ public class PlayerManager implements ParseCallback {
         retry = 0;
         exoFallbackTried = false;
         localProxyRetry = 0;
+        currentDanmakuUrl = null;
         parseJob = ParseJob.create(this).start(result, useParse);
     }
 
@@ -533,6 +557,7 @@ public class PlayerManager implements ParseCallback {
     private void setMediaItemNow(long timeout, boolean notifyPrepare) {
         if (spec == null || spec.getUrl() == null || engine == null) return;
         if (SpiderDebug.isEnabled()) SpiderDebug.log("player", "setMediaItem timeout=%d notify=%s spec=%s", timeout, notifyPrepare, debugSpec());
+        App.removeCallbacks(runnable);
         setDanmakus(spec.getDanmakus());
         prepareLutPipeline();
         initTrack = false;
@@ -543,6 +568,7 @@ public class PlayerManager implements ParseCallback {
     }
 
     private void prepareLutPipeline() {
+        lutApplySeq++;
         lutAppliedForItem = false;
         lutApplyInProgress = false;
         lutPipelineReadyForItem = false;
@@ -832,8 +858,15 @@ public class PlayerManager implements ParseCallback {
     public void setDanmaku(Danmaku item) {
         if (danmakuController == null) return;
         if (spec != null) spec.setDanmaku(item);
-        if (item.isEmpty()) danmakuController.clearItems();
-        else danmakuController.setDataSource(Uri.parse(item.getRealUrl()));
+        if (item.isEmpty()) {
+            if (currentDanmakuUrl != null) danmakuController.clearItems();
+            currentDanmakuUrl = null;
+            return;
+        }
+        String url = item.getRealUrl();
+        if (TextUtils.equals(currentDanmakuUrl, url)) return;
+        currentDanmakuUrl = url;
+        danmakuController.setDataSource(Uri.parse(url));
     }
 
     public void addDanmaku(Danmaku item) {
@@ -915,6 +948,8 @@ public class PlayerManager implements ParseCallback {
 
         void onError(String msg);
 
+        void onReload(String msg);
+
         void onPlayerRebuild(Player newPlayer);
     }
 
@@ -950,12 +985,17 @@ public class PlayerManager implements ParseCallback {
 
         @Override
         public void onPlayerError(@NonNull PlaybackException e) {
+            App.removeCallbacks(runnable);
             PlayerEngine.ErrorAction action = engine.handleError(e);
             if (SpiderDebug.isEnabled()) SpiderDebug.log("player", "error code=%d message=%s action=%s retry=%d spec=%s cause=%s", e.errorCode, e.getMessage(), action, retry, debugSpec(), causeChain(e));
             LocalProxyDebug.dumpIfLocalFailure(spec == null ? null : spec.getUrl(), e);
             if (retryLutFailure(e)) return;
             if (action == PlayerEngine.ErrorAction.FATAL && retryLocalProxy(e)) return;
             if (action == PlayerEngine.ErrorAction.FATAL && retryExoFallback(e)) return;
+            if (action == PlayerEngine.ErrorAction.RELOAD) {
+                callback.onReload(engine.getErrorMessage(e));
+                return;
+            }
             if (action == PlayerEngine.ErrorAction.RECOVERED) {
                 if (spec != null) setDanmakus(spec.getDanmakus());
                 return;
@@ -1006,6 +1046,16 @@ public class PlayerManager implements ParseCallback {
         exoFallbackTried = true;
         App.removeCallbacks(runnable);
         if (SpiderDebug.isEnabled()) SpiderDebug.log("player", "ijk fatal fallback to exo code=%d message=%s spec=%s cause=%s", e.errorCode, e.getMessage(), debugSpec(), causeChain(e));
+        switchPlayer(PlayerSetting.EXO, false);
+        return true;
+    }
+
+    private boolean retryExoFallback(String reason) {
+        if (playerType != PlayerSetting.IJK) return false;
+        if (exoFallbackTried || spec == null || TextUtils.isEmpty(spec.getUrl())) return false;
+        exoFallbackTried = true;
+        App.removeCallbacks(runnable);
+        if (SpiderDebug.isEnabled()) SpiderDebug.log("player", "ijk fallback to exo reason=%s spec=%s", reason, debugSpec());
         switchPlayer(PlayerSetting.EXO, false);
         return true;
     }
