@@ -172,7 +172,7 @@ public class LiveActivity extends PlaybackActivity implements GroupAdapter.OnCli
         mR3 = this::hideInfo;
         mR4 = this::hideUI;
         setRecyclerView();
-        // OSD 初始化：与移动端保持一致，传递两个字号参数，标题来源使用 getShow()
+        // OSD 初始化：只传入一个 float 参数（14f），leanback 版本构造函数仅接受一个 float
         mOsd = new PlayerOsdController(
                 mBinding.osd.getRoot(),
                 mBinding.osd.osdTopLeft,
@@ -188,11 +188,10 @@ public class LiveActivity extends PlaybackActivity implements GroupAdapter.OnCli
 
                     @Override
                     public String getTitle() {
-                        return mChannel == null ? "" : mChannel.getShow();
+                        return mChannel == null ? "" : mChannel.getName();
                     }
                 },
-                14f,
-                12f
+                14f   // ← 只保留一个 float
         );
         setVideoView();
         setViewModel();
