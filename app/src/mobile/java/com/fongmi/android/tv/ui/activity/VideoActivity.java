@@ -502,7 +502,8 @@ public class VideoActivity extends PlaybackActivity implements Clock.Callback, C
         mBinding.getRoot().getLocationOnScreen(root);
         mBinding.episode.getLocationOnScreen(episode);
         int available = root[1] + mBinding.getRoot().getHeight() - mEpisodeBottomInset - ResUtil.dp2px(8) - episode[1];
-        int limit = ResUtil.isPad() || ResUtil.isLand(this) ? ResUtil.dp2px(328) : ResUtil.dp2px(280);
+        // 增大最大高度限制，让选集列表能显示更多内容
+        int limit = ResUtil.isPad() || ResUtil.isLand(this) ? ResUtil.dp2px(500) : ResUtil.dp2px(450);
         int height = Math.min(limit, available);
         if (height <= 0 || height == mEpisodeMaxHeight) return;
         mEpisodeMaxHeight = height;
@@ -520,7 +521,8 @@ public class VideoActivity extends PlaybackActivity implements Clock.Callback, C
         mBinding.episodeGroup.setItemAnimator(null);
         mBinding.episodeGroup.setAdapter(mEpisodeGroupAdapter = new EpisodeGroupAdapter(this));
         mEpisodeSpanCount = getEpisodeSpanCount();
-        mBinding.episode.setNestedScrollingEnabled(false);
+        // 启用嵌套滚动，让选集列表可以独立滚动
+        mBinding.episode.setNestedScrollingEnabled(true);
         mBinding.episode.setHasFixedSize(false);
         mBinding.episode.setItemAnimator(null);
         mBinding.episode.setLayoutManager(new GridLayoutManager(this, mEpisodeSpanCount));
