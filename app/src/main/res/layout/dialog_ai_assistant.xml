@@ -7,7 +7,7 @@
     android:background="@android:color/transparent"
     android:padding="0dp">
 
-    <!-- 标题栏：半透明黑，白色文字 -->
+    <!-- 标题栏 -->
     <androidx.appcompat.widget.Toolbar
         android:id="@+id/toolbar"
         android:layout_width="match_parent"
@@ -20,7 +20,7 @@
         app:navigationIconTint="#FFFFFF"
         app:navigationContentDescription="返回" />
 
-    <!-- 模型选择区域：半透明黑，白色文字 -->
+    <!-- 模型选择区域 -->
     <LinearLayout
         android:id="@+id/model_selector"
         android:layout_width="match_parent"
@@ -54,7 +54,6 @@
             android:layout_marginStart="12dp"
             android:text="豆包火山" />
 
-        <!-- 修改Key文字按钮 -->
         <TextView
             android:id="@+id/btn_modify_key"
             android:layout_width="wrap_content"
@@ -69,7 +68,7 @@
 
     </LinearLayout>
 
-    <!-- Key 设置区域：半透明黑卡片 -->
+    <!-- Key 设置区域 -->
     <androidx.cardview.widget.CardView
         android:id="@+id/key_setting_card"
         android:layout_width="match_parent"
@@ -95,7 +94,6 @@
                 android:textStyle="bold"
                 android:layout_marginBottom="8dp" />
 
-            <!-- 申请Key按钮：白底黑字 -->
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/tv_get_key"
                 android:layout_width="match_parent"
@@ -149,7 +147,7 @@
         </LinearLayout>
     </androidx.cardview.widget.CardView>
 
-    <!-- 对话消息列表：透明背景 -->
+    <!-- 对话消息列表 -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rv_messages"
         android:layout_width="match_parent"
@@ -162,7 +160,7 @@
         android:paddingBottom="8dp"
         android:background="@android:color/transparent" />
 
-    <!-- 底部输入区：半透明黑 -->
+    <!-- 底部输入区：使用 shape 背景 + tint 实现圆角玻璃效果 -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -171,9 +169,10 @@
         android:layout_marginStart="16dp"
         android:layout_marginEnd="16dp"
         android:layout_marginBottom="8dp"
-        android:background="#CC000000"
-        android:padding="4dp"
-        android:cornerRadius="20dp">
+        android:background="@drawable/shape_input_bg"
+        android:backgroundTint="#CC000000"
+        android:backgroundTintMode="src_in"
+        android:padding="4dp">
 
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/et_input"
@@ -201,7 +200,7 @@
 
     </LinearLayout>
 
-    <!-- 底部操作栏：添加配置按钮 -->
+    <!-- 底部操作栏 -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
