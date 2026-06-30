@@ -199,7 +199,7 @@ public class AiAssistantDialog extends DialogFragment {
         if (messages.isEmpty()) {
             String welcome = "👋 当前使用 " + getModelName(currentModel) + "\n\n"
                     + "📌 **功能**：\n"
-                    + "  • 智能搜索TVBox配置（点播/直播/壁纸）\n"
+                    + "  • 智能搜索TVBox配置\n"
                     + "  • 随机推荐精选配置\n\n"
                     + "💡 **使用方法**：\n"
                     + "  • 输入 **\"推荐配置\"** 随机获取5个配置，回复数字1-5即可加载\n"
@@ -839,7 +839,7 @@ public class AiAssistantDialog extends DialogFragment {
             } else {
                 // AI消息：纯白背景，加浅灰色边框以区分
                 drawable.setColor(Color.WHITE);
-                drawable.setStroke(1, 0xFFDDDDDD);
+                drawable.setStroke(2, 0xFFDDDDDD);
                 holder.tvContent.setGravity(Gravity.START);
             }
             holder.tvContent.setBackground(drawable);
