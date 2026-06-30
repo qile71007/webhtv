@@ -183,6 +183,20 @@ public class AiAssistantDialog extends DialogFragment {
         binding.btnSend.setOnClickListener(v -> sendMessage());
         binding.btnAddConfig.setOnClickListener(v -> addConfigToDialog());
 
+        // ---------- 新增：修改Key按钮 ----------
+        binding.btnModifyKey.setOnClickListener(v -> {
+            // 如果Key卡片已隐藏，则显示并填入当前Key
+            if (binding.keySettingCard.getVisibility() == View.GONE) {
+                // 先加载最新的Key
+                loadApiKey();
+                binding.etApiKey.setText(currentApiKey);
+                showKeySettingCard("重新配置 " + getModelName(currentModel) + " 的 API Key");
+            } else {
+                // 如果已经显示，则聚焦输入框
+                binding.etApiKey.requestFocus();
+            }
+        });
+
         loadApiKeyAndUpdateUI();
 
         if (messages.isEmpty()) {
@@ -753,7 +767,6 @@ public class AiAssistantDialog extends DialogFragment {
         binding.tvKeyStatus.setText(message);
         binding.tvKeyStatus.setVisibility(View.VISIBLE);
         TypedValue tv = new TypedValue();
-        // 使用 android.R.attr.colorAccent 替代 R.attr.colorAccent
         requireContext().getTheme().resolveAttribute(android.R.attr.colorAccent, tv, true);
         binding.tvKeyStatus.setTextColor(tv.data);
         binding.tvGetKey.setText("📌 免费申请 " + getModelName(currentModel) + " API Key");
@@ -815,10 +828,8 @@ public class AiAssistantDialog extends DialogFragment {
             View view = LayoutInflater.from(parent.getContext())
                     .inflate(R.layout.item_ai_message, parent, false);
             TypedValue tv = new TypedValue();
-            // 用户消息：使用系统 colorAccent
             parent.getContext().getTheme().resolveAttribute(android.R.attr.colorAccent, tv, true);
             userColor = tv.data;
-            // AI消息：使用系统 windowBackground（或 colorBackground）
             parent.getContext().getTheme().resolveAttribute(android.R.attr.windowBackground, tv, true);
             aiColor = tv.data;
             return new ViewHolder(view);
