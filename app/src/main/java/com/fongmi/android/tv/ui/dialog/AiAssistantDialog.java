@@ -149,9 +149,9 @@ public class AiAssistantDialog extends DialogFragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        // 窗口背景改为纯黑（不再透明）
+        // 对话框背景为白色（不透明）
         if (getDialog() != null && getDialog().getWindow() != null) {
-            getDialog().getWindow().setBackgroundDrawable(new ColorDrawable(Color.BLACK));
+            getDialog().getWindow().setBackgroundDrawable(new ColorDrawable(Color.WHITE));
         }
 
         if (getArguments() != null) {
@@ -762,7 +762,7 @@ public class AiAssistantDialog extends DialogFragment {
         binding.etInput.setHint("请先配置 API Key");
         binding.tvKeyStatus.setText(message);
         binding.tvKeyStatus.setVisibility(View.VISIBLE);
-        binding.tvKeyStatus.setTextColor(Color.WHITE);
+        binding.tvKeyStatus.setTextColor(Color.BLACK);
         binding.tvGetKey.setText("📌 免费申请 " + getModelName(currentModel) + " API Key");
         resetDetectedConfig();
     }
@@ -827,17 +827,19 @@ public class AiAssistantDialog extends DialogFragment {
         public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
             Message msg = messages.get(position);
             holder.tvContent.setText(msg.content);
+            holder.tvContent.setTextColor(Color.BLACK);
 
             GradientDrawable drawable = new GradientDrawable();
             drawable.setCornerRadius(12);
 
             if (msg.isUser) {
-                drawable.setColor(Color.WHITE);
-                holder.tvContent.setTextColor(Color.BLACK);
+                // 用户消息：浅灰色背景
+                drawable.setColor(0xFFF0F0F0);
                 holder.tvContent.setGravity(Gravity.END);
             } else {
-                drawable.setColor(Color.BLACK);  // 纯黑
-                holder.tvContent.setTextColor(Color.WHITE);
+                // AI消息：纯白背景，加浅灰色边框以区分
+                drawable.setColor(Color.WHITE);
+                drawable.setStroke(1, 0xFFDDDDDD);
                 holder.tvContent.setGravity(Gravity.START);
             }
             holder.tvContent.setBackground(drawable);
