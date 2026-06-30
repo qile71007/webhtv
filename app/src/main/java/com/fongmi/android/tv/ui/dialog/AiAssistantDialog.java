@@ -202,7 +202,7 @@ public class AiAssistantDialog extends DialogFragment {
                     + "  • 智能搜索TVBox配置\n"
                     + "  • 随机推荐精选配置\n\n"
                     + "💡 **使用方法**：\n"
-                    + "  • 输入 **\"推荐配置\"** 随机获取5个配置，回复数字1-5即可加载\n"
+                    + "  • 输入 **\"推荐配置\"** 获取5个配置，回复数字1-5即可加载\n"
                     + "  • 直接描述需求，如\"推荐一个稳定的点播配置\"\n"
                     + "  • 粘贴配置链接，AI自动识别并添加\n\n";
             addSystemMessage(welcome);
