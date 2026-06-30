@@ -439,20 +439,20 @@ public class AiAssistantDialog extends DialogFragment {
     private void handleRecommendCommand() {
         if (allConfigs.isEmpty() && !isLoadingRemote) {
             isLoadingRemote = true;
-            addSystemMessage("🔄 正在从服务器加载配置列表...");
+            addSystemMessage("🔄 正在从互联网搜索配置...");
             loadRemoteConfigs();
             return;
         }
 
         if (isLoadingRemote) {
-            addSystemMessage("⏳ 配置列表加载中，请稍候...");
+            addSystemMessage("⏳ 配置加载中，请稍候...");
             return;
         }
 
         if (remainingConfigs.isEmpty()) {
             remainingConfigs.addAll(allConfigs);
             Collections.shuffle(remainingConfigs);
-            addSystemMessage("🔄 所有配置已推荐完毕，已重新打乱列表");
+            addSystemMessage("🔄 配置已推荐完毕。");
         }
 
         int count = Math.min(5, remainingConfigs.size());
@@ -467,7 +467,7 @@ public class AiAssistantDialog extends DialogFragment {
 
     // ==================== 构建推荐消息 ====================
     private String buildRecommendMessage(List<ConfigItem> configs) {
-        StringBuilder sb = new StringBuilder("🎯 为您随机推荐以下配置，请回复数字 **1-5** 选择加载：\n\n");
+        StringBuilder sb = new StringBuilder("🎯 为您推荐互联网上的配置，请回复数字 **1-5** 选择加载：\n\n");
         for (int i = 0; i < configs.size(); i++) {
             ConfigItem item = configs.get(i);
             sb.append(i + 1).append(". **").append(item.name).append("**\n");
@@ -490,7 +490,7 @@ public class AiAssistantDialog extends DialogFragment {
                 if (getActivity() == null) return;
                 getActivity().runOnUiThread(() -> {
                     isLoadingRemote = false;
-                    addSystemMessage("❌ 加载远程配置失败，使用备用配置列表");
+                    addSystemMessage("❌ 加载配置失败，使用备用配置");
                     allConfigs.clear();
                     allConfigs.addAll(FALLBACK_CONFIGS);
                     remainingConfigs.clear();
@@ -529,8 +529,8 @@ public class AiAssistantDialog extends DialogFragment {
                         addSystemMessage("✅ 成功加载 " + allConfigs.size() + " 个配置");
                         handleRecommendCommand();
                     } catch (Exception e) {
-                        Log.e(TAG, "解析远程配置失败", e);
-                        addSystemMessage("❌ 解析远程配置失败，使用备用配置列表");
+                        Log.e(TAG, "搜索网络配置失败", e);
+                        addSystemMessage("❌ 搜索网络配置失败，使用备用配置");
                         allConfigs.clear();
                         allConfigs.addAll(FALLBACK_CONFIGS);
                         remainingConfigs.clear();
