@@ -753,7 +753,8 @@ public class AiAssistantDialog extends DialogFragment {
         binding.tvKeyStatus.setText(message);
         binding.tvKeyStatus.setVisibility(View.VISIBLE);
         TypedValue tv = new TypedValue();
-        requireContext().getTheme().resolveAttribute(R.attr.colorAccent, tv, true);
+        // 使用 android.R.attr.colorAccent 替代 R.attr.colorAccent
+        requireContext().getTheme().resolveAttribute(android.R.attr.colorAccent, tv, true);
         binding.tvKeyStatus.setTextColor(tv.data);
         binding.tvGetKey.setText("📌 免费申请 " + getModelName(currentModel) + " API Key");
         resetDetectedConfig();
@@ -814,9 +815,11 @@ public class AiAssistantDialog extends DialogFragment {
             View view = LayoutInflater.from(parent.getContext())
                     .inflate(R.layout.item_ai_message, parent, false);
             TypedValue tv = new TypedValue();
-            parent.getContext().getTheme().resolveAttribute(R.attr.colorAccent, tv, true);
+            // 用户消息：使用系统 colorAccent
+            parent.getContext().getTheme().resolveAttribute(android.R.attr.colorAccent, tv, true);
             userColor = tv.data;
-            parent.getContext().getTheme().resolveAttribute(R.attr.colorSurface, tv, true);
+            // AI消息：使用系统 windowBackground（或 colorBackground）
+            parent.getContext().getTheme().resolveAttribute(android.R.attr.windowBackground, tv, true);
             aiColor = tv.data;
             return new ViewHolder(view);
         }
