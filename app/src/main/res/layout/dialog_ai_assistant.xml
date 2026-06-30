@@ -4,23 +4,23 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:background="?android:attr/windowBackground"
+    android:background="@android:color/transparent"
     android:padding="0dp">
 
-    <!-- 标题栏 -->
+    <!-- 标题栏：半透明黑，白色文字 -->
     <androidx.appcompat.widget.Toolbar
         android:id="@+id/toolbar"
         android:layout_width="match_parent"
         android:layout_height="?attr/actionBarSize"
-        android:background="?attr/colorPrimary"
+        android:background="#CC000000"
         app:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
         app:title="AI助手"
-        app:titleTextColor="?attr/colorOnPrimary"
+        app:titleTextColor="#FFFFFF"
         app:navigationIcon="?attr/homeAsUpIndicator"
-        app:navigationIconTint="?attr/colorOnPrimary"
+        app:navigationIconTint="#FFFFFF"
         app:navigationContentDescription="返回" />
 
-    <!-- 模型选择区域 + 修改Key按钮 -->
+    <!-- 模型选择区域：半透明黑，白色文字 -->
     <LinearLayout
         android:id="@+id/model_selector"
         android:layout_width="match_parent"
@@ -28,61 +28,56 @@
         android:orientation="horizontal"
         android:gravity="center_vertical"
         android:paddingStart="16dp"
-        android:paddingEnd="8dp"
+        android:paddingEnd="16dp"
         android:paddingTop="8dp"
         android:paddingBottom="8dp"
-        android:background="?attr/colorSurface"
+        android:background="#CC000000"
         android:clickable="true"
         android:focusable="true">
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="当前模型："
-            android:textColor="?android:attr/textColorPrimary"
-            android:textSize="16sp" />
+            android:text="模型"
+            android:textColor="#FFFFFF"
+            android:textSize="16sp"
+            android:textStyle="bold" />
 
         <TextView
             android:id="@+id/tv_current_model"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:textColor="?android:attr/textColorPrimary"
+            android:textColor="#FFFFFF"
             android:textSize="16sp"
             android:singleLine="true"
-            android:text="豆包火山方舟" />
+            android:layout_marginStart="12dp"
+            android:text="豆包火山" />
 
-        <!-- 修改Key按钮 -->
-        <ImageView
+        <!-- 修改Key文字按钮 -->
+        <TextView
             android:id="@+id/btn_modify_key"
-            android:layout_width="32dp"
-            android:layout_height="32dp"
-            android:padding="4dp"
-            android:src="@android:drawable/ic_menu_edit"
-            android:tint="?android:attr/textColorPrimary"
-            android:clickable="true"
-            android:focusable="true"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Key"
+            android:textColor="#FFFFFF"
+            android:textSize="14sp"
+            android:padding="8dp"
             android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="修改API Key" />
-
-        <ImageView
-            android:layout_width="24dp"
-            android:layout_height="24dp"
-            android:src="@android:drawable/arrow_down_float"
-            android:tint="?android:attr/textColorPrimary"
-            android:layout_marginStart="4dp" />
+            android:clickable="true"
+            android:focusable="true" />
 
     </LinearLayout>
 
-    <!-- Key 设置区域 -->
+    <!-- Key 设置区域：半透明黑卡片 -->
     <androidx.cardview.widget.CardView
         android:id="@+id/key_setting_card"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_margin="16dp"
-        app:cardBackgroundColor="?attr/colorSurface"
-        app:cardCornerRadius="8dp"
-        app:cardElevation="2dp"
+        app:cardBackgroundColor="#CC000000"
+        app:cardCornerRadius="12dp"
+        app:cardElevation="4dp"
         android:visibility="gone">
 
         <LinearLayout
@@ -95,19 +90,19 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="🔑 配置 API Key"
-                android:textColor="?android:attr/textColorPrimary"
+                android:textColor="#FFFFFF"
                 android:textSize="16sp"
                 android:textStyle="bold"
                 android:layout_marginBottom="8dp" />
 
-            <!-- 申请Key按钮（改为明显按钮） -->
+            <!-- 申请Key按钮：白底黑字 -->
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/tv_get_key"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="📌 免费申请 API Key"
-                android:textColor="?attr/colorOnPrimary"
-                android:backgroundTint="?attr/colorPrimary"
+                android:textColor="#000000"
+                android:backgroundTint="#FFFFFF"
                 android:layout_marginBottom="12dp"
                 style="@style/Widget.Material3.Button" />
 
@@ -115,11 +110,11 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:hint="请输入你的 API Key"
-                android:textColorHint="?android:attr/textColorHint"
+                android:textColorHint="#CCCCCC"
                 app:endIconMode="clear_text"
                 style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
-                app:boxStrokeColor="?android:attr/textColorPrimary"
-                app:hintTextColor="?android:attr/textColorHint">
+                app:boxStrokeColor="#FFFFFF"
+                app:hintTextColor="#CCCCCC">
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/et_api_key"
@@ -127,8 +122,8 @@
                     android:layout_height="wrap_content"
                     android:inputType="textVisiblePassword"
                     android:singleLine="true"
-                    android:textColor="?android:attr/textColorPrimary"
-                    android:textColorHint="?android:attr/textColorHint" />
+                    android:textColor="#FFFFFF"
+                    android:textColorHint="#CCCCCC" />
 
             </com.google.android.material.textfield.TextInputLayout>
 
@@ -138,7 +133,8 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="12dp"
                 android:text="保存 Key"
-                android:textColor="?attr/colorOnPrimary"
+                android:textColor="#000000"
+                android:backgroundTint="#FFFFFF"
                 style="@style/Widget.Material3.Button" />
 
             <TextView
@@ -146,14 +142,14 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
-                android:textColor="?android:attr/textColorPrimary"
+                android:textColor="#FFFFFF"
                 android:textSize="13sp"
                 android:visibility="gone" />
 
         </LinearLayout>
     </androidx.cardview.widget.CardView>
 
-    <!-- 对话消息列表 -->
+    <!-- 对话消息列表：透明背景 -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rv_messages"
         android:layout_width="match_parent"
@@ -164,9 +160,9 @@
         android:paddingStart="16dp"
         android:paddingEnd="16dp"
         android:paddingBottom="8dp"
-        android:background="?android:attr/windowBackground" />
+        android:background="@android:color/transparent" />
 
-    <!-- 底部输入区 -->
+    <!-- 底部输入区：半透明黑 -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -175,10 +171,9 @@
         android:layout_marginStart="16dp"
         android:layout_marginEnd="16dp"
         android:layout_marginBottom="8dp"
-        android:background="@drawable/shape_input_bg"
-        android:backgroundTint="?attr/colorSurface"
-        android:backgroundTintMode="src_in"
-        android:padding="4dp">
+        android:background="#CC000000"
+        android:padding="4dp"
+        android:cornerRadius="20dp">
 
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/et_input"
@@ -190,17 +185,19 @@
             android:inputType="textMultiLine"
             android:background="@android:color/transparent"
             android:padding="12dp"
-            android:textColor="?android:attr/textColorPrimary"
-            android:textColorHint="?android:attr/textColorHint" />
+            android:textColor="#FFFFFF"
+            android:textColorHint="#CCCCCC" />
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btn_send"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="发送"
-            android:textColor="?attr/colorOnPrimary"
+            android:textColor="#000000"
+            android:backgroundTint="#FFFFFF"
             android:paddingStart="16dp"
-            android:paddingEnd="16dp" />
+            android:paddingEnd="16dp"
+            style="@style/Widget.Material3.Button" />
 
     </LinearLayout>
 
@@ -221,8 +218,8 @@
             android:layout_weight="1"
             android:text="✅ 添加此配置"
             android:enabled="false"
-            android:backgroundTint="?attr/colorPrimary"
-            android:textColor="?attr/colorOnPrimary"
+            android:textColor="#000000"
+            android:backgroundTint="#FFFFFF"
             style="@style/Widget.Material3.Button" />
 
     </LinearLayout>
