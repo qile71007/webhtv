@@ -1026,6 +1026,7 @@
 
     <string-array name="select_player_osd">
         <item>Title</item>
+        <item>Resolution</item>
         <item>Clock</item>
         <item>Progress</item>
         <item>Network speed</item>
@@ -1037,6 +1038,20 @@
         <item>Select audio track</item>
         <item>Select video track</item>
         <item>Select subtitle track</item>
+    </string-array>
+    
+    <!-- Reset App -->
+<string name="setting_reset_app">Reset App</string>
+<string name="setting_reset_app_confirm">Reset this app? All data and settings will be cleared, and the app will restart.</string>
+
+<string name="download">download</string>
+
+
+    <string-array name="model_names">
+        <item>Beanbao volcano</item>
+        <item>Tongyi Qianwen</item>
+        <item>Clear words of wisdom</item>
+        <item>DeepSeek</item>
     </string-array>
 
 </resources>
