@@ -1018,6 +1018,7 @@
 
     <string-array name="select_player_osd">
         <item>标题</item>
+        <item>分辨率</item>
         <item>时间</item>
         <item>进度</item>
         <item>网速</item>
@@ -1030,5 +1031,17 @@
         <item>选择视轨</item>
         <item>选择字幕</item>
     </string-array>
+    
+    <!-- Reset App -->
+<string name="setting_reset_app">重置应用</string>
+<string name="setting_reset_app_confirm">确认重置应用吗？这将清除所有数据和设置，应用将重启。</string>
 
+<string name="download">下载</string>
+
+    <string-array name="model_names">
+        <item>豆包火山</item>
+        <item>通义千问</item>
+        <item>智谱清言</item>
+        <item>DeepSeek</item>
+    </string-array>
 </resources>
