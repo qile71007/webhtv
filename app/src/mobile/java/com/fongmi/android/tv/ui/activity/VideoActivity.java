@@ -467,7 +467,8 @@ public class VideoActivity extends PlaybackActivity implements Clock.Callback, C
         mBinding.shortDisplay.setOnClickListener(view -> onShortDisplay());
         mBinding.search.setOnClickListener(view -> onSearch());
         mBinding.castAction.setOnClickListener(view -> onCast());
-        mBinding.downloadAction.setOnClickListener(view -> onDownload()); // 新增下载点击
+        // 修复：传递 view 参数
+        mBinding.downloadAction.setOnClickListener(view -> onDownload(view));
         mBinding.settingAction.setOnClickListener(view -> onSetting());
         mBinding.actor.setOnClickListener(view -> onActor());
         mBinding.content.setOnClickListener(view -> onContent());
