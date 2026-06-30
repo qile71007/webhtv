@@ -10,7 +10,6 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.util.Log;
-import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -183,16 +182,13 @@ public class AiAssistantDialog extends DialogFragment {
         binding.btnSend.setOnClickListener(v -> sendMessage());
         binding.btnAddConfig.setOnClickListener(v -> addConfigToDialog());
 
-        // ---------- 新增：修改Key按钮 ----------
+        // ---------- 修改Key文字点击 ----------
         binding.btnModifyKey.setOnClickListener(v -> {
-            // 如果Key卡片已隐藏，则显示并填入当前Key
             if (binding.keySettingCard.getVisibility() == View.GONE) {
-                // 先加载最新的Key
                 loadApiKey();
                 binding.etApiKey.setText(currentApiKey);
                 showKeySettingCard("重新配置 " + getModelName(currentModel) + " 的 API Key");
             } else {
-                // 如果已经显示，则聚焦输入框
                 binding.etApiKey.requestFocus();
             }
         });
@@ -207,8 +203,7 @@ public class AiAssistantDialog extends DialogFragment {
                     + "💡 **使用方法**：\n"
                     + "  • 输入 **\"推荐配置\"** 随机获取5个配置，回复数字1-5即可加载\n"
                     + "  • 直接描述需求，如\"推荐一个稳定的点播配置\"\n"
-                    + "  • 粘贴配置链接，AI自动识别并添加\n\n"
-                    + "⚠️ \"支持联网\"表示模型API具备联网能力，当前版本未开启，对话基于模型训练数据。";
+                    + "  • 粘贴配置链接，AI自动识别并添加\n\n";
             addSystemMessage(welcome);
         } else {
             binding.rvMessages.scrollToPosition(messages.size() - 1);
@@ -362,13 +357,13 @@ public class AiAssistantDialog extends DialogFragment {
     private String getModelName(int model) {
         switch (model) {
             case MODEL_DOUBAO:
-                return "豆包火山（支持联网）";
+                return "豆包火山";
             case MODEL_QWEN:
-                return "通义千问（支持联网）";
+                return "通义千问";
             case MODEL_GLM:
-                return "智谱清言（支持联网）";
+                return "智谱清言";
             case MODEL_DEEPSEEK:
-                return "DeepSeek（不支持联网）";
+                return "DeepSeek";
             default:
                 return "未知";
         }
@@ -766,9 +761,7 @@ public class AiAssistantDialog extends DialogFragment {
         binding.etInput.setHint("请先配置 API Key");
         binding.tvKeyStatus.setText(message);
         binding.tvKeyStatus.setVisibility(View.VISIBLE);
-        TypedValue tv = new TypedValue();
-        requireContext().getTheme().resolveAttribute(android.R.attr.colorAccent, tv, true);
-        binding.tvKeyStatus.setTextColor(tv.data);
+        binding.tvKeyStatus.setTextColor(Color.WHITE); // 白色文字
         binding.tvGetKey.setText("📌 免费申请 " + getModelName(currentModel) + " API Key");
         resetDetectedConfig();
     }
@@ -816,7 +809,6 @@ public class AiAssistantDialog extends DialogFragment {
     // ==================== 内部类 MessageAdapter ====================
     static class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.ViewHolder> {
         private List<Message> messages;
-        private int userColor, aiColor;
 
         MessageAdapter(List<Message> messages) {
             this.messages = messages;
@@ -827,11 +819,6 @@ public class AiAssistantDialog extends DialogFragment {
         public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
             View view = LayoutInflater.from(parent.getContext())
                     .inflate(R.layout.item_ai_message, parent, false);
-            TypedValue tv = new TypedValue();
-            parent.getContext().getTheme().resolveAttribute(android.R.attr.colorAccent, tv, true);
-            userColor = tv.data;
-            parent.getContext().getTheme().resolveAttribute(android.R.attr.windowBackground, tv, true);
-            aiColor = tv.data;
             return new ViewHolder(view);
         }
 
@@ -839,15 +826,22 @@ public class AiAssistantDialog extends DialogFragment {
         public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
             Message msg = messages.get(position);
             holder.tvContent.setText(msg.content);
+
             GradientDrawable drawable = new GradientDrawable();
             drawable.setCornerRadius(12);
+
             if (msg.isUser) {
-                drawable.setColor(userColor);
+                // 用户消息：白底黑字
+                drawable.setColor(Color.WHITE);
+                holder.tvContent.setTextColor(Color.BLACK);
+                holder.tvContent.setGravity(Gravity.END);
             } else {
-                drawable.setColor(aiColor);
+                // AI消息：半透明黑底白字
+                drawable.setColor(0xCC000000);
+                holder.tvContent.setTextColor(Color.WHITE);
+                holder.tvContent.setGravity(Gravity.START);
             }
             holder.tvContent.setBackground(drawable);
-            holder.tvContent.setGravity(msg.isUser ? Gravity.END : Gravity.START);
         }
 
         @Override
