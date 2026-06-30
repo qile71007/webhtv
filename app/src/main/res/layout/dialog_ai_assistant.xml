@@ -20,7 +20,7 @@
         app:navigationIconTint="?attr/colorOnPrimary"
         app:navigationContentDescription="返回" />
 
-    <!-- 模型选择区域 -->
+    <!-- 模型选择区域 + 修改Key按钮 -->
     <LinearLayout
         android:id="@+id/model_selector"
         android:layout_width="match_parent"
@@ -28,7 +28,7 @@
         android:orientation="horizontal"
         android:gravity="center_vertical"
         android:paddingStart="16dp"
-        android:paddingEnd="16dp"
+        android:paddingEnd="8dp"
         android:paddingTop="8dp"
         android:paddingBottom="8dp"
         android:background="?attr/colorSurface"
@@ -52,11 +52,26 @@
             android:singleLine="true"
             android:text="豆包火山方舟" />
 
+        <!-- 修改Key按钮 -->
+        <ImageView
+            android:id="@+id/btn_modify_key"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:padding="4dp"
+            android:src="@android:drawable/ic_menu_edit"
+            android:tint="?android:attr/textColorPrimary"
+            android:clickable="true"
+            android:focusable="true"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="修改API Key" />
+
         <ImageView
             android:layout_width="24dp"
             android:layout_height="24dp"
             android:src="@android:drawable/arrow_down_float"
-            android:tint="?android:attr/textColorPrimary" />
+            android:tint="?android:attr/textColorPrimary"
+            android:layout_marginStart="4dp" />
+
     </LinearLayout>
 
     <!-- Key 设置区域 -->
@@ -85,17 +100,16 @@
                 android:textStyle="bold"
                 android:layout_marginBottom="8dp" />
 
-            <TextView
+            <!-- 申请Key按钮（改为明显按钮） -->
+            <com.google.android.material.button.MaterialButton
                 android:id="@+id/tv_get_key"
-                android:layout_width="wrap_content"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="📌 免费申请 API Key"
-                android:textColor="?attr/colorAccent"
-                android:textSize="14sp"
-                android:autoLink="web"
-                android:clickable="true"
-                android:focusable="true"
-                android:layout_marginBottom="12dp" />
+                android:textColor="?attr/colorOnPrimary"
+                android:backgroundTint="?attr/colorPrimary"
+                android:layout_marginBottom="12dp"
+                style="@style/Widget.Material3.Button" />
 
             <com.google.android.material.textfield.TextInputLayout
                 android:layout_width="match_parent"
@@ -190,7 +204,7 @@
 
     </LinearLayout>
 
-    <!-- 底部操作栏 -->
+    <!-- 底部操作栏：添加配置按钮 -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -207,8 +221,9 @@
             android:layout_weight="1"
             android:text="✅ 添加此配置"
             android:enabled="false"
+            android:backgroundTint="?attr/colorPrimary"
             android:textColor="?attr/colorOnPrimary"
-            style="@style/Widget.Material3.Button.OutlinedButton" />
+            style="@style/Widget.Material3.Button" />
 
     </LinearLayout>
 
