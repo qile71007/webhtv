@@ -219,10 +219,10 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:gravity="end"
-                    android:text="智能搜索TVBox配置"
+                    android:text="智能搜索添加配置"
                     android:textColor="@color/white"
                     android:textSize="16sp"
-                    tools:text="智能搜索TVBox配置" />
+                    tools:text="智能搜索添加配置" />
 
             </androidx.appcompat.widget.LinearLayoutCompat>
 
