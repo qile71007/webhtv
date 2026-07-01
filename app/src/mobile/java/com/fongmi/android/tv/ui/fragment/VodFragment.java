@@ -276,7 +276,7 @@ public class VodFragment extends BaseFragment implements ConfigListener, SiteLis
     }
 
     // ========== 修改：菜单点击处理，添加加号逻辑 ==========
-    @Override
+    // 【关键修复】删除 @Override，因为此方法并非重写父类方法
     public boolean onMenuItemClick(MenuItem item) {
         int id = item.getItemId();
         if (id == R.id.refresh) {
