@@ -275,7 +275,7 @@ public class VodFragment extends BaseFragment implements ConfigListener, SiteLis
         if (mAdapter.getItemCount() > 0) FilterDialog.create().filter(mAdapter.get(mBinding.pager.getCurrentItem()).getFilters()).show(this);
     }
 
-    // ========== 修改：添加加号菜单处理 ==========
+    // ========== 修改：菜单点击处理，添加加号逻辑 ==========
     @Override
     public boolean onMenuItemClick(MenuItem item) {
         int id = item.getItemId();
@@ -295,8 +295,8 @@ public class VodFragment extends BaseFragment implements ConfigListener, SiteLis
         } else if (id == R.id.web_home_fullscreen) {
             onWebHomeFullscreen();
         } else if (id == R.id.action_add_config) {
-            // 新增：打开添加配置对话框（非编辑模式，可输入新配置）
-            ConfigDialog.create().vod().show(getChildFragmentManager());
+            // 新增：打开添加配置对话框（传入当前Fragment实例）
+            ConfigDialog.create().vod().show(this);
             return true;
         } else {
             return false;
@@ -661,6 +661,7 @@ public class VodFragment extends BaseFragment implements ConfigListener, SiteLis
     private HomeActivity homeActivity() {
         return getActivity() instanceof HomeActivity ? (HomeActivity) getActivity() : null;
     }
+
 
     class PageAdapter extends FragmentStatePagerAdapter {
 
