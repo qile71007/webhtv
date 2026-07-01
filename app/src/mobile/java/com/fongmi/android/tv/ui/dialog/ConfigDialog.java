@@ -142,25 +142,11 @@ public class ConfigDialog extends BaseAlertDialog {
         String name = binding.name.getText().toString().trim();
 
         if (edit) {
-            // 编辑已有配置：更新
+            // 编辑模式：根据原URL找到配置并更新
             Config.find(ori, type).url(url).name(name).update();
         } else {
-            // 添加新配置：先删除原配置（如果有），再创建新配置
-            // 如果原配置存在（ori不为空），需要先删除？但添加模式下ori为空，所以直接创建
-            // 使用 Config.find(url, type) 尝试查找是否已存在，如果存在则更新，否则创建新记录
-            Config config = Config.find(url, type);
-            if (config != null && !TextUtils.isEmpty(config.getUrl())) {
-                // 如果已存在同URL的配置，则更新名称
-                config.name(name).update();
-            } else {
-                // 否则创建新配置（通过 find 的默认行为可能自动创建，但保险起见调用 add 方法）
-                // 假设 Config 有 add 方法，若没有则使用 find 并设置属性后 update
-                // 这里简单使用 find 并设置名称和URL，如果找不到会自动创建（取决于实现）
-                Config.add(url, name, type); // 假设有静态 add 方法
-                // 如果 add 不存在，可改为：
-                // Config.find(url, type).url(url).name(name).update();
-                // 但 find 可能返回 null，需处理
-            }
+            // 添加模式：使用 find 获取或创建配置（若不存在则自动创建），然后设置属性并更新
+            Config.find(url, type).url(url).name(name).update();
         }
 
         // 通知父Fragment刷新配置
@@ -178,4 +164,4 @@ public class ConfigDialog extends BaseAlertDialog {
                 dismiss();
             }
     );
-                    }
+}
