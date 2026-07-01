@@ -1029,4 +1029,6 @@
         <item>DeepSeek</item>
     </string-array>
 
+    <string name="add_config">添加配置</string>
+
 </resources>
