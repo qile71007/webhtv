@@ -33,7 +33,7 @@ import com.fongmi.android.tv.ui.base.BaseFragment;
 import com.fongmi.android.tv.ui.dialog.AboutDialog;
 import com.fongmi.android.tv.ui.dialog.AiAssistantDialog;
 import com.fongmi.android.tv.ui.dialog.ConfigDialog;
-import com.fongmi.android.tv.ui.dialog.ConfigListDialog;  // 新增导入
+import com.fongmi.android.tv.ui.dialog.ConfigListDialog;
 import com.fongmi.android.tv.ui.dialog.HistoryDialog;
 import com.fongmi.android.tv.ui.dialog.LiveDialog;
 import com.fongmi.android.tv.ui.dialog.RestoreDialog;
@@ -69,12 +69,11 @@ public class SettingFragment extends BaseFragment implements ConfigListener, Sit
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        // 注册 AI 助手结果监听器
         getChildFragmentManager().setFragmentResultListener("ai_config_result", this, (requestKey, result) -> {
             String url = result.getString("config_url");
             String name = result.getString("config_name");
             if (url != null && !url.isEmpty()) {
-                Config config = Config.find(url, 0); // 0 = 点播
+                Config config = Config.find(url, 0);
                 if (config != null) {
                     if (name != null && !name.isEmpty()) config.setName(name);
                     setConfig(config);
@@ -146,10 +145,17 @@ public class SettingFragment extends BaseFragment implements ConfigListener, Sit
 
     @Override
     protected void initEvent() {
+        // 短按：打开配置列表
         mBinding.vod.setOnClickListener(this::onVod);
-        mBinding.doh.setOnClickListener(this::setDoh);
         mBinding.live.setOnClickListener(this::onLive);
         mBinding.wall.setOnClickListener(this::onWall);
+        // 长按：打开编辑对话框
+        mBinding.vod.setOnLongClickListener(this::onVodEdit);
+        mBinding.live.setOnLongClickListener(this::onLiveEdit);
+        mBinding.wall.setOnLongClickListener(this::onWallEdit);
+
+        // 其他事件
+        mBinding.doh.setOnClickListener(this::setDoh);
         mBinding.size.setOnClickListener(this::setSize);
         mBinding.uiScale.setOnClickListener(this::setUiScale);
         mBinding.cache.setOnClickListener(this::onCache);
@@ -159,11 +165,8 @@ public class SettingFragment extends BaseFragment implements ConfigListener, Sit
         mBinding.danmaku.setOnClickListener(this::onDanmaku);
         mBinding.restore.setOnClickListener(this::onRestore);
         mBinding.version.setOnClickListener(this::onVersion);
-        mBinding.vod.setOnLongClickListener(this::onVodEdit);
         mBinding.vodHome.setOnClickListener(this::onVodHome);
-        mBinding.live.setOnLongClickListener(this::onLiveEdit);
         mBinding.liveHome.setOnClickListener(this::onLiveHome);
-        mBinding.wall.setOnLongClickListener(this::onWallEdit);
         mBinding.incognito.setOnClickListener(this::setIncognito);
         mBinding.vodHistory.setOnClickListener(this::onVodHistory);
         mBinding.themeColor.setOnClickListener(this::onThemeColor);
@@ -172,19 +175,48 @@ public class SettingFragment extends BaseFragment implements ConfigListener, Sit
         mBinding.wallRefresh.setOnClickListener(this::setWallRefresh);
         mBinding.wallRefresh.setOnLongClickListener(this::onWallHistory);
         
-        // 新增：重置应用点击事件
         mBinding.resetApp.setOnClickListener(this::onResetApp);
 
-        // ---------- AI 助手入口 ----------
+        // AI 助手入口
         mBinding.aiAssistant.setOnClickListener(v -> {
             AiAssistantDialog dialog = new AiAssistantDialog();
             Bundle args = new Bundle();
-            args.putInt("config_type", 0); // 0=点播, 1=直播, 2=壁纸
+            args.putInt("config_type", 0);
             dialog.setArguments(args);
             dialog.show(getChildFragmentManager(), "ai_assistant");
         });
     }
 
+    // ==================== 短按：打开配置列表 ====================
+    private void onVod(View view) {
+        ConfigListDialog.create().type(0).listener(this).show(this);
+    }
+
+    private void onLive(View view) {
+        ConfigListDialog.create().type(1).listener(this).show(this);
+    }
+
+    private void onWall(View view) {
+        ConfigListDialog.create().type(2).listener(this).show(this);
+    }
+
+    // ==================== 长按：打开编辑对话框 ====================
+    private boolean onVodEdit(View view) {
+        ConfigDialog.create().vod().edit().show(this);
+        return true;
+    }
+
+    private boolean onLiveEdit(View view) {
+        ConfigDialog.create().live().edit().show(this);
+        return true;
+    }
+
+    private boolean onWallEdit(View view) {
+        ConfigDialog.create().wall().edit().show(this);
+        return true;
+    }
+
+    // ==================== 其余方法保持不变 ====================
     @Override
     public void setConfig(Config config) {
         if (config.getUrl().startsWith("file")) {
@@ -244,35 +276,6 @@ public class SettingFragment extends BaseFragment implements ConfigListener, Sit
     public void setTheme(int color) {
         Setting.putThemeColor(color);
         RefreshEvent.theme();
-    }
-
-    // ==================== 修改：短按配置项弹出列表选择对话框 ====================
-    private void onVod(View view) {
-        ConfigListDialog.create().type(0).listener(this).show(this);
-    }
-
-    private void onLive(View view) {
-        ConfigListDialog.create().type(1).listener(this).show(this);
-    }
-
-    private void onWall(View view) {
-        ConfigListDialog.create().type(2).listener(this).show(this);
-    }
-
-    // ==================== 长按仍保留编辑功能 ====================
-    private boolean onVodEdit(View view) {
-        ConfigDialog.create().vod().edit().show(this);
-        return true;
-    }
-
-    private boolean onLiveEdit(View view) {
-        ConfigDialog.create().live().edit().show(this);
-        return true;
-    }
-
-    private boolean onWallEdit(View view) {
-        ConfigDialog.create().wall().edit().show(this);
-        return true;
     }
 
     private void onVodHome(View view) {
@@ -409,7 +412,6 @@ public class SettingFragment extends BaseFragment implements ConfigListener, Sit
         WallConfig.get().init().load();
     }
 
-// 新增：重置应用
     private void onResetApp(View view) {
         new MaterialAlertDialogBuilder(requireActivity())
                 .setTitle(R.string.setting_reset_app)
@@ -420,35 +422,27 @@ public class SettingFragment extends BaseFragment implements ConfigListener, Sit
     }
 
     private void resetApp() {
-        // 清除所有应用数据
         try {
-            // 清除 SharedPreferences
             requireActivity().getSharedPreferences(requireActivity().getPackageName() + "_preferences", 0).edit().clear().apply();
             File prefsDir = new File(requireActivity().getApplicationInfo().dataDir, "shared_prefs");
             deleteRecursive(prefsDir);
-            // 清除 databases
             File dbDir = new File(requireActivity().getApplicationInfo().dataDir, "databases");
             deleteRecursive(dbDir);
-            // 清除 files
             File filesDir = requireActivity().getFilesDir();
             deleteRecursive(filesDir);
-            // 清除 cache
             File cacheDir = requireActivity().getCacheDir();
             deleteRecursive(cacheDir);
-            // 清除外部缓存
             File externalCacheDir = requireActivity().getExternalCacheDir();
             if (externalCacheDir != null) deleteRecursive(externalCacheDir);
         } catch (Exception e) {
             e.printStackTrace();
         }
 
-        // 重启应用
         Intent intent = requireActivity().getPackageManager().getLaunchIntentForPackage(requireActivity().getPackageName());
         if (intent != null) {
             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
             startActivity(intent);
         }
-        // 退出当前进程
         System.exit(0);
     }
 
@@ -496,4 +490,4 @@ public class SettingFragment extends BaseFragment implements ConfigListener, Sit
         super.onDestroy();
         getChildFragmentManager().clearFragmentResultListener("ai_config_result");
     }
-}
+    }
