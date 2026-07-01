@@ -18,19 +18,19 @@ import java.util.List;
 public class ConfigAdapter extends RecyclerView.Adapter<ConfigAdapter.ViewHolder> {
 
     private final OnClickListener listener;
-    private List<Config> mItems;            // 全部数据
-    private List<Config> mFilteredItems;    // 过滤后展示的数据
+    private List<Config> mItems;
+    private List<Config> mFilteredItems;
     private boolean readOnly;
-    private int selectedPosition = -1;      // 当前高亮位置
-
-    public ConfigAdapter(OnClickListener listener) {
-        this.listener = listener;
-        this.mFilteredItems = new ArrayList<>();
-    }
+    private int selectedPosition = -1;
 
     public interface OnClickListener {
         void onTextClick(Config item);
         void onDeleteClick(Config item);
+    }
+
+    public ConfigAdapter(OnClickListener listener) {
+        this.listener = listener;
+        this.mFilteredItems = new ArrayList<>();
     }
 
     public ConfigAdapter readOnly(boolean readOnly) {
@@ -46,7 +46,7 @@ public class ConfigAdapter extends RecyclerView.Adapter<ConfigAdapter.ViewHolder
         return this;
     }
 
-    // ==================== 新增：搜索过滤 ====================
+    // ==================== 搜索过滤（已修复 null 问题） ====================
     public void filter(String keyword) {
         mFilteredItems.clear();
         if (TextUtils.isEmpty(keyword)) {
@@ -54,41 +54,47 @@ public class ConfigAdapter extends RecyclerView.Adapter<ConfigAdapter.ViewHolder
         } else {
             String lower = keyword.toLowerCase();
             for (Config item : mItems) {
-                if (item.getName().toLowerCase().contains(lower) ||
-                        item.getUrl().toLowerCase().contains(lower) ||
-                        item.getDesc().toLowerCase().contains(lower)) {
+                // 安全获取字段，避免 null
+                String name = item.getName();
+                String url = item.getUrl();
+                String desc = item.getDesc();
+                
+                boolean match = false;
+                if (name != null && name.toLowerCase().contains(lower)) match = true;
+                if (!match && url != null && url.toLowerCase().contains(lower)) match = true;
+                if (!match && desc != null && desc.toLowerCase().contains(lower)) match = true;
+                
+                if (match) {
                     mFilteredItems.add(item);
                 }
             }
         }
-        selectedPosition = -1; // 重置选中位置，由外部重新设置
+        selectedPosition = -1;
         notifyDataSetChanged();
     }
 
-    // ==================== 新增：获取当前展示列表 ====================
     public List<Config> getDisplayItems() {
         return mFilteredItems;
     }
 
-    // ==================== 新增：查找配置位置（基于URL） ====================
     public int findPosition(Config target) {
         if (target == null) return -1;
         String targetUrl = target.getUrl();
+        if (TextUtils.isEmpty(targetUrl)) return -1;
         for (int i = 0; i < mFilteredItems.size(); i++) {
-            if (mFilteredItems.get(i).getUrl().equals(targetUrl)) {
+            Config item = mFilteredItems.get(i);
+            if (item != null && targetUrl.equals(item.getUrl())) {
                 return i;
             }
         }
         return -1;
     }
 
-    // ==================== 新增：设置选中位置 ====================
     public void setSelectedPosition(int position) {
         this.selectedPosition = position;
         notifyDataSetChanged();
     }
 
-    // ==================== 新增：获取当前选中的配置 ====================
     public Config getSelectedItem() {
         if (selectedPosition >= 0 && selectedPosition < mFilteredItems.size()) {
             return mFilteredItems.get(selectedPosition);
@@ -96,14 +102,11 @@ public class ConfigAdapter extends RecyclerView.Adapter<ConfigAdapter.ViewHolder
         return null;
     }
 
-    // ==================== 原有删除方法（适配过滤列表） ====================
     public int remove(Config item) {
-        // 先从过滤列表中移除
         int position = mFilteredItems.indexOf(item);
         if (position == -1) return -1;
         item.delete();
         mFilteredItems.remove(position);
-        // 同时从全部列表中移除
         mItems.remove(item);
         notifyItemRemoved(position);
         return getItemCount();
@@ -125,13 +128,12 @@ public class ConfigAdapter extends RecyclerView.Adapter<ConfigAdapter.ViewHolder
         Config item = mFilteredItems.get(position);
         holder.binding.text.setText(item.getDesc());
 
-        // ==================== 新增：高亮选中项 ====================
+        // 高亮选中的配置
         boolean isSelected = (position == selectedPosition);
         holder.binding.text.setSelected(isSelected);
         holder.binding.text.setBackgroundResource(isSelected ? R.drawable.shape_item_selected : R.drawable.shape_item_normal);
 
         holder.binding.text.setOnClickListener(v -> {
-            // 点击时更新选中位置
             setSelectedPosition(position);
             if (listener != null) listener.onTextClick(item);
         });
