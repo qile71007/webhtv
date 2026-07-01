@@ -44,7 +44,7 @@ import com.fongmi.android.tv.ui.activity.SearchActivity;
 import com.fongmi.android.tv.ui.adapter.TypeAdapter;
 import com.fongmi.android.tv.ui.base.BaseFragment;
 import com.fongmi.android.tv.ui.dialog.ConfigDialog;
-import com.fongmi.android.tv.ui.dialog.ConfigListDialog;  // 新增
+import com.fongmi.android.tv.ui.dialog.ConfigListDialog;
 import com.fongmi.android.tv.ui.dialog.FilterDialog;
 import com.fongmi.android.tv.ui.dialog.HistoryDialog;
 import com.fongmi.android.tv.ui.dialog.LinkDialog;
@@ -117,7 +117,7 @@ public class VodFragment extends BaseFragment implements ConfigListener, SiteLis
     @Override
     protected void initEvent() {
         mBinding.top.setOnClickListener(this::onTop);
-        mBinding.logo.setOnClickListener(this::onLogo);  // 短按改为打开配置列表（已修改）
+        mBinding.logo.setOnClickListener(this::onLogo);
         mBinding.link.setOnClickListener(this::onLink);
         mBinding.title.setOnClickListener(this::onSite);
         mBinding.title.setOnLongClickListener(this::reloadConfig);
@@ -239,9 +239,8 @@ public class VodFragment extends BaseFragment implements ConfigListener, SiteLis
         return false;
     }
 
-    // ==================== 修改：点击Logo打开点播配置列表 ====================
+    // ==================== 点击Logo打开点播配置列表 ====================
     private void onLogo(View view) {
-        // 打开点播配置列表（带搜索、高亮、自动滚动、点击加载）
         ConfigListDialog.create().type(0).listener(this).show(this);
     }
 
@@ -279,7 +278,6 @@ public class VodFragment extends BaseFragment implements ConfigListener, SiteLis
     }
 
     // ========== 菜单点击处理 ==========
-    @Override
     public boolean onMenuItemClick(MenuItem item) {
         int id = item.getItemId();
         if (id == R.id.refresh) {
