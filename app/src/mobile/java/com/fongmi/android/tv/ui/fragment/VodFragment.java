@@ -44,6 +44,7 @@ import com.fongmi.android.tv.ui.activity.SearchActivity;
 import com.fongmi.android.tv.ui.adapter.TypeAdapter;
 import com.fongmi.android.tv.ui.base.BaseFragment;
 import com.fongmi.android.tv.ui.dialog.ConfigDialog;
+import com.fongmi.android.tv.ui.dialog.ConfigListDialog;  // 新增
 import com.fongmi.android.tv.ui.dialog.FilterDialog;
 import com.fongmi.android.tv.ui.dialog.HistoryDialog;
 import com.fongmi.android.tv.ui.dialog.LinkDialog;
@@ -116,7 +117,7 @@ public class VodFragment extends BaseFragment implements ConfigListener, SiteLis
     @Override
     protected void initEvent() {
         mBinding.top.setOnClickListener(this::onTop);
-        mBinding.logo.setOnClickListener(this::onLogo);
+        mBinding.logo.setOnClickListener(this::onLogo);  // 短按改为打开配置列表（已修改）
         mBinding.link.setOnClickListener(this::onLink);
         mBinding.title.setOnClickListener(this::onSite);
         mBinding.title.setOnLongClickListener(this::reloadConfig);
@@ -238,8 +239,10 @@ public class VodFragment extends BaseFragment implements ConfigListener, SiteLis
         return false;
     }
 
+    // ==================== 修改：点击Logo打开点播配置列表 ====================
     private void onLogo(View view) {
-        HistoryDialog.create().vod().readOnly().show(this);
+        // 打开点播配置列表（带搜索、高亮、自动滚动、点击加载）
+        ConfigListDialog.create().type(0).listener(this).show(this);
     }
 
     private void onSite(View view) {
@@ -275,8 +278,8 @@ public class VodFragment extends BaseFragment implements ConfigListener, SiteLis
         if (mAdapter.getItemCount() > 0) FilterDialog.create().filter(mAdapter.get(mBinding.pager.getCurrentItem()).getFilters()).show(this);
     }
 
-    // ========== 修改：菜单点击处理，添加加号逻辑 ==========
-    // 【关键修复】删除 @Override，因为此方法并非重写父类方法
+    // ========== 菜单点击处理 ==========
+    @Override
     public boolean onMenuItemClick(MenuItem item) {
         int id = item.getItemId();
         if (id == R.id.refresh) {
@@ -295,7 +298,6 @@ public class VodFragment extends BaseFragment implements ConfigListener, SiteLis
         } else if (id == R.id.web_home_fullscreen) {
             onWebHomeFullscreen();
         } else if (id == R.id.action_add_config) {
-            // 新增：打开添加配置对话框（传入当前Fragment实例）
             ConfigDialog.create().vod().show(this);
             return true;
         } else {
