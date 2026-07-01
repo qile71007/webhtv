@@ -33,6 +33,7 @@ import com.fongmi.android.tv.ui.base.BaseFragment;
 import com.fongmi.android.tv.ui.dialog.AboutDialog;
 import com.fongmi.android.tv.ui.dialog.AiAssistantDialog;
 import com.fongmi.android.tv.ui.dialog.ConfigDialog;
+import com.fongmi.android.tv.ui.dialog.ConfigListDialog;
 import com.fongmi.android.tv.ui.dialog.HistoryDialog;
 import com.fongmi.android.tv.ui.dialog.LiveDialog;
 import com.fongmi.android.tv.ui.dialog.RestoreDialog;
@@ -144,16 +145,15 @@ public class SettingFragment extends BaseFragment implements ConfigListener, Sit
 
     @Override
     protected void initEvent() {
-        // ========== 修改：短按打开编辑对话框 ==========
+        // 短按：打开配置列表
         mBinding.vod.setOnClickListener(this::onVod);
         mBinding.live.setOnClickListener(this::onLive);
         mBinding.wall.setOnClickListener(this::onWall);
-        // 移除长按监听，避免干扰
-        mBinding.vod.setOnLongClickListener(null);
-        mBinding.live.setOnLongClickListener(null);
-        mBinding.wall.setOnLongClickListener(null);
+        // 长按：打开编辑对话框
+        mBinding.vod.setOnLongClickListener(this::onVodEdit);
+        mBinding.live.setOnLongClickListener(this::onLiveEdit);
+        mBinding.wall.setOnLongClickListener(this::onWallEdit);
 
-        // 其他事件
         mBinding.doh.setOnClickListener(this::setDoh);
         mBinding.size.setOnClickListener(this::setSize);
         mBinding.uiScale.setOnClickListener(this::setUiScale);
@@ -186,20 +186,36 @@ public class SettingFragment extends BaseFragment implements ConfigListener, Sit
         });
     }
 
-    // ==================== 短按：直接打开编辑对话框 ====================
+    // ==================== 短按：打开配置列表 ====================
     private void onVod(View view) {
-        ConfigDialog.create().vod().edit().show(this);
+        ConfigListDialog.create().type(0).listener(this).show(this);
     }
 
     private void onLive(View view) {
-        ConfigDialog.create().live().edit().show(this);
+        ConfigListDialog.create().type(1).listener(this).show(this);
     }
 
     private void onWall(View view) {
-        ConfigDialog.create().wall().edit().show(this);
+        ConfigListDialog.create().type(2).listener(this).show(this);
     }
 
-    // ==================== 其余方法保持不变 ====================
+    // ==================== 长按：打开编辑对话框 ====================
+    private boolean onVodEdit(View view) {
+        ConfigDialog.create().vod().edit().show(this);
+        return true;
+    }
+
+    private boolean onLiveEdit(View view) {
+        ConfigDialog.create().live().edit().show(this);
+        return true;
+    }
+
+    private boolean onWallEdit(View view) {
+        ConfigDialog.create().wall().edit().show(this);
+        return true;
+    }
+
+    // ==================== 其余方法 ====================
     @Override
     public void setConfig(Config config) {
         if (config.getUrl().startsWith("file")) {
@@ -473,4 +489,4 @@ public class SettingFragment extends BaseFragment implements ConfigListener, Sit
         super.onDestroy();
         getChildFragmentManager().clearFragmentResultListener("ai_config_result");
     }
-}
+                                             }
