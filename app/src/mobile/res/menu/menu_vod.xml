@@ -5,7 +5,7 @@
     <!-- 新增加号按钮：添加/编辑配置 -->
     <item
         android:id="@+id/action_add_config"
-        android:icon="@android:drawable/ic_add"
+        android:icon="@drawable/ic_add"
         android:title="@string/add_config"
         app:iconTint="@color/white"
         app:showAsAction="always" />
