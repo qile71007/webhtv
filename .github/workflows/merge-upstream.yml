@@ -1,0 +1,32 @@
+name: 强行合并上游最新代码
+
+on:
+  workflow_dispatch:
+
+jobs:
+  merge-upstream:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: 配置 Git
+        run: |
+          git config --global user.email "action@github.com"
+          git config --global user.name "GitHub Action"
+
+      - name: 添加上游远程仓库
+        run: git remote add upstream https://github.com/fish2018/webhtv.git
+
+      - name: 拉取上游最新代码
+        run: git fetch upstream main
+
+      - name: 强行合并上游代码（使用上游的改动）
+        run: git merge -X theirs upstream/main -m "Merge upstream latest code - force merge (using upstream version)"
+
+      - name: 推送到 main 分支
+        run: git push origin main
